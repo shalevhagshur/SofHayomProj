@@ -21,7 +21,7 @@ import { Base64 } from 'js-base64';
     isAuthenticated: boolean;
     userRole: number | null;
     token: string | null;
-    isBusinessAuthorized: boolean | null;
+    isBusinessAuthorized: boolean | null | number;
     loading: boolean;
     error: string | null;
     }
@@ -32,40 +32,45 @@ import { Base64 } from 'js-base64';
     token: null,
     loading: false,
     error: null,
-    isBusinessAuthorized: null,
+    isBusinessAuthorized: false,
     };
 
 
  // Async thunk for signing in
-export const signIn = createAsyncThunk(
-    'auth/signIn',
-    async (userData: { email: string; password: string }, { rejectWithValue }) => {
+ export const signIn = createAsyncThunk(
+  'auth/signIn',
+  async (userData: { email: string; password: string }, { rejectWithValue }) => {
       try {
-        const response = await api.post('/login', userData);
-  
-        // Correctly accessing the access_token from the response
-        if (response.data && response.data.access_token) {
-          const decoded = decodeToken(response.data.access_token); // Use access_token
-  
-          const userId = decoded.sub; // Adjust based on your token structure
-          const userResponse = await api.get(`/users/${userId}`);
-          const userRole = userResponse.data.role_id; // Adjust based on your API response structure
-  
-          return { token: response.data.access_token, userRole };
-        } else {
-          console.log('Token missing in response');
-          return rejectWithValue('Token missing in response');
-        }
-      } catch (error) {
-        console.error('SignIn Error:', error);
-        if (error.response) {
-          return rejectWithValue(error.response.data);
-        }
-        return rejectWithValue('An unknown error occurred');
-      }
-    }
-  );
+          const response = await api.post('/login', userData);
+          if (response.data && response.data.access_token) {
+              const decoded = decodeToken(response.data.access_token);
+              const userId = decoded.sub;
+              const userResponse = await api.get(`/users/${userId}`);
 
+              // Extract isBusinessAuthorized
+              const isBusinessAuthorized = userResponse.data.is_business_authorized === 1;
+              console.log('IsBusinessAuthorized:', isBusinessAuthorized); // Add this line
+              console.log('Response from server:', response.data);
+             
+
+              return { 
+                  token: response.data.access_token, 
+                  userRole: userResponse.data.role_id,
+                  isBusinessAuthorized: isBusinessAuthorized // Include this in the payload
+              };
+          } else {
+              console.log('Token missing in response');
+              return rejectWithValue('Token missing in response');
+          }
+      } catch (error) {
+          console.error('SignIn Error:', error);
+          if (error.response) {
+              return rejectWithValue(error.response.data);
+          }
+          return rejectWithValue('An unknown error occurred');
+      }
+  }
+);
   
   export const registerUser = createAsyncThunk(
     'auth/registerUser',
@@ -108,18 +113,21 @@ export const signIn = createAsyncThunk(
     name: 'auth',
     initialState,
     reducers: {
-        setCredentials: (state, action: PayloadAction<{ token: string; userRole: number }>) => {
+      setCredentials: (state, action: PayloadAction<{ token: string; userRole: number, isBusinessAuthorized: boolean | null }>) => {
+        console.log('Setting credentials:', action.payload);
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.userRole = action.payload.userRole;
-        },
+        state.isBusinessAuthorized = action.payload.isBusinessAuthorized; // Set this state
+      },
         logout: (state) => {
-        state.isAuthenticated = false;
-        state.token = null;
-        state.userRole = null;
-        state.loading = false;
-        state.error = null;
-        },
+          state.isAuthenticated = false;
+          state.token = null;
+          state.userRole = null;
+          state.loading = false;
+          state.error = null;
+          state.isBusinessAuthorized = null;
+      },
         // Add other reducers as needed
     },
     extraReducers: (builder) => {
@@ -132,6 +140,7 @@ export const signIn = createAsyncThunk(
             state.isAuthenticated = true;
             state.token = action.payload.token;
             state.userRole = action.payload.userRole;
+            state.isBusinessAuthorized = action.payload.isBusinessAuthorized
             state.loading = false;
         })
         .addCase(signIn.rejected, (state, action) => {

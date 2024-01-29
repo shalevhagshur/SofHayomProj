@@ -1,15 +1,38 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import AccountScreen from '../screens/business screens/Account/AccountScreen'; // Adjust the path as per your folder structure
-import ProductManagementNav from './BusinessNavStack/ProductManagmentStack'; // Ensure the path is correct
-import ProductHistoryNav from './BusinessNavStack/ProductHistoryStack'; // Ensure the path is correct
-import CustomTabBar from '../components/CustomTabBar'; // Ensure the path is correct
-import BusinessNotAuthorized from '../screens/business screens/BusinessNotAuthorized';
 import { useSelector } from 'react-redux';
+import AccountScreen from '../screens/business screens/Account/AccountScreen';
+import ProductManagementNav from './BusinessNavStack/ProductManagmentStack';
+import ProductHistoryNav from './BusinessNavStack/ProductHistoryStack';
+import BusinessNotAuthorized from '../screens/business screens/BusinessNotAutherized';
+import CustomTabBar from '../components/CustomTabBar';
+
+interface AuthState {
+  isAuthenticated: boolean;
+  userRole: number | null;
+  token: string | null;
+  isBusinessAuthorized: boolean | null;
+  loading: boolean;
+  error: string | null;
+}
 
 const Tab = createBottomTabNavigator();
 
 const BusinessNavigator = () => {
+  const { userRole, isBusinessAuthorized } = useSelector((state: { auth: AuthState }) => state.auth);
+
+  useEffect(() => {
+    console.log('IsBusinessAuthorized changed:', isBusinessAuthorized);
+  }, [isBusinessAuthorized]);
+
+  console.log('Business Navigator - UserRole:', userRole, 'IsBusinessAuthorized:', isBusinessAuthorized);
+
+  if (userRole === 1 && isBusinessAuthorized === false) {
+    console.log('Navigating to BusinessNotAuthorized');
+    return <BusinessNotAuthorized />;
+  }
+  
+  else{
   return (
     <Tab.Navigator 
       screenOptions={{ headerShown: false }} 
@@ -21,6 +44,7 @@ const BusinessNavigator = () => {
       <Tab.Screen name="ProductHistory" component={ProductHistoryNav} />
     </Tab.Navigator>
   );
+}
 };
 
 export default BusinessNavigator;
