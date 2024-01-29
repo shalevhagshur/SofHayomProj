@@ -98,10 +98,21 @@ import { Base64 } from 'js-base64';
     async (userData: { username: string; email: string; password: string; password_confirmation: string }, { rejectWithValue }) => {
       try {
         const response = await api.post('/registerBusiness', userData);
+        if (!response.data.token) {
+          throw new Error("Token missing in API response");
+        }
         const decoded = decodeToken(response.data.token);
+        if (!decoded || !decoded.sub) {
+          throw new Error("Invalid token structure");
+        }
         const userId = decoded.sub;
         const userResponse = await api.get(`/users/${userId}`);
-        return { token: response.data.token, userRole: userResponse.data.role_id };
+        const isBusinessAuthorized = userResponse.data.is_business_authorized === 1;
+        return { 
+          token: response.data.token, 
+          userRole: userResponse.data.role_id,
+          isBusinessAuthorized: isBusinessAuthorized
+        };
       } catch (error) {
         if (error.response) return rejectWithValue(error.response.data);
         return rejectWithValue('An unknown error occurred');
@@ -170,6 +181,7 @@ import { Base64 } from 'js-base64';
           state.isAuthenticated = true;
           state.token = action.payload.token;
           state.userRole = action.payload.userRole;
+          state.isBusinessAuthorized = action.payload.isBusinessAuthorized;
           state.loading = false;
         })
         .addCase(registerBusiness.rejected, (state, action) => {
