@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../utils/api';
 import { Base64 } from 'js-base64';
+import { storeTokenInAsyncStorage } from './Helpers';
 
     const decodeToken = (token: string) => {
         try {
@@ -49,8 +50,7 @@ import { Base64 } from 'js-base64';
 
               // Extract isBusinessAuthorized
               const isBusinessAuthorized = userResponse.data.is_business_authorized === 1;
-              console.log('IsBusinessAuthorized:', isBusinessAuthorized); // Add this line
-              console.log('Response from server:', response.data);
+              storeTokenInAsyncStorage(response.data.access_token); 
              
 
               return { 

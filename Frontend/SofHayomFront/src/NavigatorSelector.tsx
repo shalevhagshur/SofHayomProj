@@ -11,20 +11,19 @@ import api from './utils/api';
 
 // Function to manually decode a JWT token
 const decodeToken = (token: string) => {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(Base64.atob(base64).split('').map((c) => {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-  
-      return JSON.parse(jsonPayload);
-    } catch (e) {
-      console.error('Error decoding token:', e);
-      return null;
-    }
-  };
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(Base64.atob(base64).split('').map((c) => {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
 
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error('Error decoding token:', e);
+    return null;
+  }
+};
 
 const NavigatorSelector = () => {
   const dispatch = useDispatch();
@@ -32,17 +31,18 @@ const NavigatorSelector = () => {
 
   useEffect(() => {
     const checkToken = async () => {
-      const token = await AsyncStorage.getItem('token');
-      if (token) {
-        try {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (token) {
           const decoded = decodeToken(token);
-          const userId = decoded.sub; // Adjust based on your token structure
+          const userId = decoded.sub;
           const response = await api.get(`/users/${userId}`);
-          const userRole = response.data.role_id; // Adjust based on your API response structure
+          const userRole = response.data.role_id;
           dispatch(setCredentials({ token, userRole }));
-        } catch (error) {
-          console.error('Error decoding token or fetching user data:', error);
+          console.log('User logged in'); // Log the user when a token is found
         }
+      } catch (error) {
+        console.error('Error decoding token or fetching user data:', error);
       }
     };
 

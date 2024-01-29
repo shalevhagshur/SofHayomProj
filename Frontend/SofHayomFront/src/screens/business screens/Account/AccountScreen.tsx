@@ -1,18 +1,51 @@
-import React, { useState } from 'react';
+// AccountScreen.tsx
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput, Button } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../../store/store'; // Adjust the import path as needed
+import { logout } from '../../../store/slices/authSlice'; // Adjust the import path as needed
+import { fetchUserData, updateUserData } from '../../../store/slices/userSlice'; // Adjust the import path as needed
 import CardButton from '../../../components/CardButton';
 import AuthButton from '../../../components/AuthButton';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { Base64 } from 'js-base64';
 
-const AccountScreen = () => {
+    const decodeToken = (token: string) => {
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(Base64.atob(base64).split('').map((c) => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+      
+          return JSON.parse(jsonPayload);
+        } catch (e) {
+          console.error('Error decoding token:', e);
+          return null;
+        }
+      };
+
+const AccountScreen: React.FC = () => {
+    const dispatch = useDispatch();
+    const { token, isAuthenticated } = useSelector((state: RootState) => state.auth);
+    const userData = useSelector((state: RootState) => state.user.userData);
+
+    
+    useEffect(() => {
+        if (isAuthenticated && token) {
+            const userId = decodeToken(token).sub;
+            dispatch(fetchUserData(userId));
+        }
+    }, [isAuthenticated, token, dispatch]);
+
     const [isModalVisible, setModalVisible] = useState(false);
     const [modalContent, setModalContent] = useState('');
-    const [username, setUsername] = useState('');
+    const [username, setUsername] = useState(userData.username || '');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [businessName, setBusinessName] = useState('');
-    const [profileImage, setProfileImage] = useState(require('../../../assets/img/default_profile.png'));
+    const [businessName, setBusinessName] = useState(userData.businessName || '');
+    const [profileImage, setProfileImage] = useState(userData.profileImage || require('../../../assets/img/default_profile.png'));
 
     const handleButtonPress = (content: string) => {
         setModalContent(content);
@@ -51,6 +84,20 @@ const AccountScreen = () => {
             case 'Edit Profile':
                 return (
                     <View>
+                        <Text>Edit Username</Text>
+                        <TextInput
+                            style={styles.input}
+                            onChangeText={setUsername}
+                            value={username}
+                            placeholder="New Username"
+                        />
+                        <Text>ערוך\צור שם עסק</Text>
+                        <TextInput
+                            style={styles.input}
+                            onChangeText={setBusinessName}
+                            value={businessName}
+                            placeholder="שם העסק החדש"
+                        />
                         <Text>שנה שם משתמש</Text>
                         <TextInput
                             style={styles.input}
@@ -127,8 +174,7 @@ const AccountScreen = () => {
     };
 
     const handleLogoutPress = () => {
-        console.log('Logout pressed');
-        // Add your logout logic here
+        dispatch(logout());
     };
 
     return (
@@ -139,7 +185,7 @@ const AccountScreen = () => {
                     <Image source={profileImage} style={styles.profileImage} />
                 </TouchableOpacity>
             </View>
-            <Text style={styles.title}>ברוך הבא שם משתמש !</Text>
+            <Text style={styles.title}>ברוך הבא שם {username}!</Text>
             <CardButton
                 buttontitle="עריכה"
                 iconName="edit"
