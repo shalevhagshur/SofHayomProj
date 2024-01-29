@@ -1,0 +1,62 @@
+Before Building and Submitting
+Review Expo Documentation: Expo's documentation on EAS Build and Submit provides detailed information on how to customize these profiles for specific needs.
+App Store Guidelines: Ensure your app complies with the guidelines of the Apple App Store and Google Play Store before submission.
+Metadata and Assets: Prepare all the necessary metadata, like descriptions, screenshots, and icons, for your app's listing on the app stores.
+Versioning: Make sure to update the app version appropriately in your app's configuration file (app.json or `app
+.config.js`) before each new build, especially for production releases.
+
+Finalizing Your Configuration
+While the eas.json file you have is a good starting point, you might need to adjust it as your project progresses and as your needs become more specific. Especially for the production profile, you might want to configure specific build settings such as environment variables, credentials, or specific build hooks.
+
+Remember, each eas build and eas submit command lets you specify which profile to use, so you can tailor your builds and submissions to different development stages or target environments.
+
+In conclusion, your eas.json file is set up for flexibility with different stages of development and production, which is a good practice. You can proceed with this configuration, and make adjustments as needed based on your experience with building and submitting your app.
+
+
+
+
+
+
+Build Process with EAS Build
+Development Phase: During this phase, you work on your app's code, adding features, fixing bugs, and testing. You can use the Expo Go app for testing during development.
+
+Initial Build: When you have a version of your app ready that you want to test on an actual device or distribute for testing, that's when you use eas build. This process compiles your app into native binaries (.apk for Android and .ipa for iOS).
+
+iOS Build:
+bash
+Copy code
+eas build --platform ios
+Android Build:
+bash
+Copy code
+eas build --platform android
+Testing Builds: Before releasing to the public, you may want to distribute your app to testers. For iOS, this can be done through TestFlight, and for Android, you can directly share the .apk or use internal testing tracks on Google Play.
+
+Submission Process with EAS Submit
+Finalizing the App: Once your app is ready for public release and you have tested it thoroughly, you can then proceed to submit it to the Apple App Store and Google Play Store.
+
+Submission Commands: Use the eas submit command to submit your built app to the respective stores.
+
+Submit to iOS App Store:
+bash
+Copy code
+eas submit --platform ios
+Submit to Google Play Store:
+bash
+Copy code
+eas submit --platform android
+Key Points to Remember
+App Store Requirements: Both the Apple App Store and Google Play Store have their own set of guidelines and requirements for app submissions. Ensure that your app complies with these requirements.
+
+App Store Credentials: You will need the appropriate credentials for the app stores, such as an Apple Developer account for submitting to the Apple App Store and a Google Play Developer account for the Google Play Store.
+
+Versioning: Each time you build for submission, make sure to update your app's version number in accordance with semantic versioning.
+
+Metadata and Assets: Prepare all necessary metadata (like app descriptions, keywords, screenshots, etc.) for the app store listings.
+
+In summary, eas build is for compiling your app into a distributable form, which you do after development, and eas submit is for the actual submission to the app stores, which you do once your app is finalized and ready for public release.
+
+
+
+
+
