@@ -22,13 +22,10 @@ const BusinessNavigator = () => {
   const { userRole, isBusinessAuthorized } = useSelector((state: { auth: AuthState }) => state.auth);
 
   useEffect(() => {
-    console.log('IsBusinessAuthorized changed:', isBusinessAuthorized);
+    
   }, [isBusinessAuthorized]);
 
-  console.log('Business Navigator - UserRole:', userRole, 'IsBusinessAuthorized:', isBusinessAuthorized);
-
   if (userRole === 1 && isBusinessAuthorized === false) {
-    console.log('Navigating to BusinessNotAuthorized');
     return <BusinessNotAuthorized />;
   }
   

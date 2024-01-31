@@ -2,6 +2,7 @@ import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../utils/api';
 import { Base64 } from 'js-base64';
 import { storeTokenInAsyncStorage } from './Helpers';
+import { fetchUserData } from './userSlice';
 
     const decodeToken = (token: string) => {
         try {
@@ -42,7 +43,11 @@ import { storeTokenInAsyncStorage } from './Helpers';
   'auth/signIn',
   async (userData: { email: string; password: string }, { rejectWithValue }) => {
       try {
+          console.log(userData);
+        
           const response = await api.post('/login', userData);
+          console.log(response);
+          
           if (response.data && response.data.access_token) {
               const decoded = decodeToken(response.data.access_token);
               const userId = decoded.sub;
@@ -138,6 +143,7 @@ import { storeTokenInAsyncStorage } from './Helpers';
           state.loading = false;
           state.error = null;
           state.isBusinessAuthorized = null;
+          const userData = []
       },
         // Add other reducers as needed
     },

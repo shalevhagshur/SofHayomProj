@@ -30,6 +30,10 @@ const AccountScreen: React.FC = () => {
     const { token, isAuthenticated } = useSelector((state: RootState) => state.auth);
     const userData = useSelector((state: RootState) => state.user.userData);
 
+        // Default data setup
+    const defaultUsername = 'DefaultUsername';
+    const defaultProfileImage = require('../../../assets/img/default_profile.png');
+
     
     useEffect(() => {
         if (isAuthenticated && token) {
@@ -40,12 +44,28 @@ const AccountScreen: React.FC = () => {
 
     const [isModalVisible, setModalVisible] = useState(false);
     const [modalContent, setModalContent] = useState('');
-    const [username, setUsername] = useState(userData.username || '');
+    const [username, setUsername] = useState(defaultUsername);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [businessName, setBusinessName] = useState(userData.businessName || '');
-    const [profileImage, setProfileImage] = useState(userData.profileImage || require('../../../assets/img/default_profile.png'));
+    const [profileImage, setProfileImage] = useState(defaultProfileImage);  
+    const [businessName, setBusinessName] = useState('');
+    const [businessAddress, setBusinessAddress] = useState('');
+    const [businessImage, setBusinessImage] = useState(null);
+
+    useEffect(() => {
+        if (userData) {
+            setUsername(userData.username || defaultUsername);
+            setProfileImage(userData.profileImage || defaultProfileImage);
+        }
+    }, [userData]);
+
+    useEffect(() => {
+        if (isAuthenticated && token) {
+            const userId = decodeToken(token).sub;
+            dispatch(fetchUserData(userId));
+        }
+    }, [isAuthenticated, token, dispatch]);
 
     const handleButtonPress = (content: string) => {
         setModalContent(content);
@@ -81,16 +101,31 @@ const AccountScreen: React.FC = () => {
 
     const renderModalContent = () => {
         switch (modalContent) {
+            case 'Create Business':
+                return (
+                    <View>
+                        <Text>שם עסק</Text>
+                        <TextInput
+                            style={styles.input}
+                            onChangeText={setBusinessName}
+                            value={businessName}
+                            placeholder="שם העסק"
+                        />
+                        <Text>כתובת העסק</Text>
+                        <TextInput
+                            style={styles.input}
+                            onChangeText={setBusinessAddress}
+                            value={businessAddress}
+                            placeholder="כתובת העסק"
+                        />
+                        <Button title="בחר תמונה" onPress={handleChooseBusinessImage} />
+                        {businessImage && <Image source={{ uri: businessImage }} style={styles.imagePreview} />}
+                    </View>
+                );
             case 'Edit Profile':
                 return (
                     <View>
-                        <Text>Edit Username</Text>
-                        <TextInput
-                            style={styles.input}
-                            onChangeText={setUsername}
-                            value={username}
-                            placeholder="New Username"
-                        />
+
                         <Text>ערוך\צור שם עסק</Text>
                         <TextInput
                             style={styles.input}
@@ -108,8 +143,8 @@ const AccountScreen: React.FC = () => {
                         <Text>שנה שם עסק</Text>
                         <TextInput
                         style={styles.input}
-                        // onChangeText={setBusinessName} // You will need to create and use a state variable for business name
-                        // value={businessName} // State variable for business name
+                        onChangeText={setBusinessName} // You will need to create and use a state variable for business name
+                        value={businessName} // State variable for business name
                        placeholder="שם עסק חדש"
                        />
 
@@ -185,13 +220,13 @@ const AccountScreen: React.FC = () => {
                     <Image source={profileImage} style={styles.profileImage} />
                 </TouchableOpacity>
             </View>
-            <Text style={styles.title}>ברוך הבא שם {username}!</Text>
+            <Text style={styles.title}>ברוך הבא {username}!</Text>
             <CardButton
                 buttontitle="עריכה"
                 iconName="edit"
                 onPress={() => handleButtonPress('Edit Profile')}
             />
-            <CardButton
+            <CardButton 
                 buttontitle="עזרה תכנית"
                 iconName="help-circle"
                 onPress={() => handleButtonPress('Program Help')}

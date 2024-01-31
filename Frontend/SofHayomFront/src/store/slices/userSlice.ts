@@ -3,6 +3,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../utils/api';
 
 interface User {
+  profileImage: any;
   id: number;
   username: string;
   email: string;
@@ -23,6 +24,20 @@ interface AuthState {
   loading: boolean;
   error: string | null;
 }
+
+export const createBusiness = createAsyncThunk(
+  'business/createBusiness',
+  async (businessData, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/businesses', businessData);
+      console.log(response.data);
+      return response.data; // Assuming response.data contains the created business data
+      
+    } catch (error) {
+      return rejectWithValue('Error creating business');
+    }
+  }
+);
 
 export const fetchUserData = createAsyncThunk<User, number, { rejectValue: string }>(
   'user/fetchUserData',

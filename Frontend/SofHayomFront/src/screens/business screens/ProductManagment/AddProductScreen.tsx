@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, Image , Text} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 type Product = {

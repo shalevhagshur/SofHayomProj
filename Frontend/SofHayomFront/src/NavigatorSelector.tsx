@@ -38,8 +38,9 @@ const NavigatorSelector = () => {
           const userId = decoded.sub;
           const response = await api.get(`/users/${userId}`);
           const userRole = response.data.role_id;
-          dispatch(setCredentials({ token, userRole }));
-          console.log('User logged in'); // Log the user when a token is found
+          const isBusinessAuthorized = response.data.is_business_authorized === 1; // Check if the user is business authorized
+          dispatch(setCredentials({ token, userRole, isBusinessAuthorized }));
+          
         }
       } catch (error) {
         console.error('Error decoding token or fetching user data:', error);
