@@ -26,6 +26,7 @@ class BusinessController extends Controller
             'name' => 'required|string|max:255',
             'business_image' => 'nullable|string|max:255',
             'address' => 'required|string|max:255',
+            'user_id' => 'required|exists:users,id', 
         ]);
 
         if ($validator->fails()) {
@@ -54,12 +55,13 @@ class BusinessController extends Controller
             'name' => 'required|string|max:255',
             'business_image' => 'nullable|string|max:255',
             'address' => 'required|string|max:255',
+            'user_id' => 'required|exists:users,id', // Validate the user_id
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         }
-
+    
         $business = Business::findOrFail($id);
         $business->update($request->all());
         return response()->json($business);

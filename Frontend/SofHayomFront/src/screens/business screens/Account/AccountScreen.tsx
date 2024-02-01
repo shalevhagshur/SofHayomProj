@@ -85,8 +85,8 @@ const AccountScreen: React.FC = () => {
                 // Check if business details have been edited
                 if (businessName !== '' || businessAddress !== '') {
                   // Call action to create or update business details
-                  console.log('Updating or creating business:', { businessName, businessAddress });
-                  dispatch(createBusiness({ userId: userData.id, businessName, businessAddress }));
+                  console.log('Updating or creating business:', { name: businessName, address: businessAddress, user_id: userData.id });
+                  dispatch(createBusiness({ name: businessName, address: businessAddress, user_id: userData.id }));
                 }
 
                 break;      
@@ -114,27 +114,6 @@ const AccountScreen: React.FC = () => {
 
     const renderModalContent = () => {
         switch (modalContent) {
-            case 'Create Business':
-                return (
-                    <View>
-                        <Text>שם עסק</Text>
-                        <TextInput
-                            style={styles.input}
-                            onChangeText={setBusinessName}
-                            value={businessName}
-                            placeholder="שם העסק"
-                        />
-                        <Text>כתובת העסק</Text>
-                        <TextInput
-                            style={styles.input}
-                            onChangeText={setBusinessAddress}
-                            value={businessAddress}
-                            placeholder="כתובת העסק"
-                        />
-                        <Button title="בחר תמונה" onPress={handleChooseBusinessImage} />
-                        {businessImage && <Image source={{ uri: businessImage }} style={styles.imagePreview} />}
-                    </View>
-                );
             case 'Edit Profile':
                 return (
                     <View>
@@ -158,7 +137,7 @@ const AccountScreen: React.FC = () => {
                         style={styles.input}
                         onChangeText={setBusinessAddress} // You will need to create and use a state variable for business name
                         value={businessAddress} // State variable for business name
-                       placeholder="שם עסק חדש"
+                        placeholder="כתובת עסק חדשה"
                        />
 
                        </View>

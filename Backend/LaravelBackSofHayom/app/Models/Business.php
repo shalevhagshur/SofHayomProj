@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Business extends Model
 {
-    protected $fillable = ['name', 'business_image', 'address'];
+    protected $fillable = ['name', 'business_image', 'address', 'user_id'];
 
     public function products()
     {
