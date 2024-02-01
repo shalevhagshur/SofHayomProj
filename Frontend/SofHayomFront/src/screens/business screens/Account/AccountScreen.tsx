@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput, Butt
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store/store'; // Adjust the import path as needed
 import { logout } from '../../../store/slices/authSlice'; // Adjust the import path as needed
-import { fetchUserData, updateUserData } from '../../../store/slices/userSlice'; // Adjust the import path as needed
+import { fetchUserData ,updateUser ,changeUserPassword ,createBusiness } from '../../../store/slices/userSlice'; // Adjust the import path as needed
 import CardButton from '../../../components/CardButton';
 import AuthButton from '../../../components/AuthButton';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -75,8 +75,21 @@ const AccountScreen: React.FC = () => {
     const handleSubmit = () => {
         switch (modalContent) {
             case 'Edit Profile':
-                console.log('Editing profile:', username);
-                break;
+                // Check if username has been edited
+                if (username !== userData.username) {
+                  // Call action to update username
+                  console.log('Updating username:', username);
+                  dispatch(updateUser({ userId: userData.id, updates: { username } }));
+                }
+          
+                // Check if business details have been edited
+                if (businessName !== '' || businessAddress !== '') {
+                  // Call action to create or update business details
+                  console.log('Updating or creating business:', { businessName, businessAddress });
+                  dispatch(createBusiness({ userId: userData.id, businessName, businessAddress }));
+                }
+
+                break;      
             case 'Program Help':
                 console.log('Requesting program help');
                 break;
@@ -140,11 +153,11 @@ const AccountScreen: React.FC = () => {
                             value={username}
                             placeholder="שם משתמש חדש"
                         />
-                        <Text>שנה שם עסק</Text>
+                        <Text>ערוך\צור כתובת עסק</Text>
                         <TextInput
                         style={styles.input}
-                        onChangeText={setBusinessName} // You will need to create and use a state variable for business name
-                        value={businessName} // State variable for business name
+                        onChangeText={setBusinessAddress} // You will need to create and use a state variable for business name
+                        value={businessAddress} // State variable for business name
                        placeholder="שם עסק חדש"
                        />
 

@@ -16,6 +16,11 @@ interface UserState {
   error: string | null;
 }
 
+interface UpdateUserData {
+  userId: number;
+  updates: { [key: string]: any }; // Object with key-value pairs of fields to update
+}
+
 interface AuthState {
   isAuthenticated: boolean;
   userRole: number | null;
@@ -25,9 +30,17 @@ interface AuthState {
   error: string | null;
 }
 
+interface ChangePasswordData {
+  userId: number;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export const createBusiness = createAsyncThunk(
   'business/createBusiness',
-  async (businessData, { rejectWithValue }) => {
+  async (businessData, { rejectWithValue }) => {console.log(businessData);
+  
     try {
       const response = await api.post('/businesses', businessData);
       console.log(response.data);
@@ -51,6 +64,38 @@ export const fetchUserData = createAsyncThunk<User, number, { rejectValue: strin
   }
 );
 
+export const updateUser = createAsyncThunk(
+  'user/updateUser',
+  async ({ userId, updates }: UpdateUserData, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/users/${userId}`, updates);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue('Error updating user');
+    }
+  }
+);
+
+export const changeUserPassword = createAsyncThunk(
+  'user/changePassword',
+  async ({ userId, currentPassword, newPassword, confirmPassword }: ChangePasswordData, { rejectWithValue }) => {
+    try {
+      if (newPassword !== confirmPassword) {
+        throw new Error("Passwords do not match");
+      }
+      const passwordData = {
+        currentPassword,
+        newPassword,
+        confirmPassword
+      };
+      const response = await api.put(`/users/${userId}/changePassword`, passwordData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error changing password');
+    }
+  }
+);
+
 const initialState: UserState = {
   userData: null,
   loading: false,
@@ -65,17 +110,49 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchUserData.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(fetchUserData.fulfilled, (state, action) => {
-        state.userData = action.payload;
-        state.loading = false;
-      })
-      .addCase(fetchUserData.rejected, (state, action) => {
-        state.error = action.error.message;
-        state.loading = false;
-      });
+    .addCase(fetchUserData.pending, (state) => {
+      state.loading = true;
+    })
+    .addCase(fetchUserData.fulfilled, (state, action) => {
+      state.userData = action.payload;
+      state.loading = false;
+    })
+    .addCase(fetchUserData.rejected, (state, action) => {
+      state.error = action.error.message;
+      state.loading = false;
+    })
+    .addCase(updateUser.pending, (state) => {
+      state.loading = true;
+    })
+    .addCase(updateUser.fulfilled, (state, action) => {
+      state.userData = {...state.userData, ...action.payload};
+      state.loading = false;
+    })
+    .addCase(updateUser.rejected, (state, action) => {
+      state.error = action.error.message;
+      state.loading = false;
+    })
+    .addCase(changeUserPassword.pending, (state) => {
+      state.loading = true;
+    })
+    .addCase(changeUserPassword.fulfilled, (state) => {
+      state.loading = false;
+    })
+    .addCase(changeUserPassword.rejected, (state, action) => {
+      state.error = action.error.message;
+      state.loading = false;
+    })
+    .addCase(createBusiness.pending, (state) => {
+      state.loading = true;
+    })
+    .addCase(createBusiness.fulfilled, (state, action) => {
+      // handle business creation success
+      state.loading = false;
+    })
+    .addCase(createBusiness.rejected, (state, action) => {
+      state.error = action.error.message;
+      state.loading = false;
+    }); 
   },
 });
 

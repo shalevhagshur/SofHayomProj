@@ -55,10 +55,10 @@ class UserController extends Controller
     public function update(Request $request, int $id)
     {
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255',
+            'username' => 'nullable|string|max:255',
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
-            'email' => 'required|string|email|max:255',
+            'email' => 'nullable|string|email|max:255',
             'password' => 'nullable|string|min:8', // Adjust validation as needed
             'role_id' => 'nullable|exists:roles,id',
         ]);
@@ -82,6 +82,32 @@ class UserController extends Controller
         return response()->json($user);
     }
 
+    public function changePassword(Request $request, int $id)
+{
+    $validator = Validator::make($request->all(), [
+        'currentPassword' => 'required|string',
+        'newPassword' => 'required|string|min:8',
+        'confirmPassword' => 'required|string|same:newPassword',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 400);
+    }
+
+    $user = User::findOrFail($id);
+
+    // Check if the current password matches the user's stored password
+    if (!Hash::check($request->input('currentPassword'), $user->password)) {
+        return response()->json(['errors' => ['currentPassword' => 'Incorrect current password']], 400);
+    }
+
+    // Update the user's password with the new password
+    $newPassword = $request->input('newPassword');
+    $user->password = Hash::make($newPassword);
+    $user->save();
+
+    return response()->json(['message' => 'Password changed successfully']);
+}
     /**
      * Remove the specified resource from storage.
      */

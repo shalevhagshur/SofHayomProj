@@ -47,13 +47,9 @@ Route::post('/users', [UserController::class, 'store']);
 Route::get('/users/{id}', [UserController::class, 'show']);
 Route::put('/users/{id}', [UserController::class, 'update']);
 Route::delete('/users/{id}', [UserController::class, 'destroy']);
+Route::put('users/{id}/changepassword', [UserController::class, 'changePassword']);
 
-// Categories CRUD
-// Route::get('/categories', [CategoryController::class, 'index']);
-// Route::post('/categories', [CategoryController::class, 'store']);
-// Route::get('/categories/{id}', [CategoryController::class, 'show']);
-// Route::put('/categories/{id}', [CategoryController::class, 'update']);
-// Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+
 
 // Products CRUD
 Route::get('/products', [ProductController::class, 'index']);
