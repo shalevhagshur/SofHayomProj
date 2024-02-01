@@ -67,6 +67,18 @@ class BusinessController extends Controller
         return response()->json($business);
     }
 
+    public function getByUserId(int $user_id)
+    {
+        // Find and return business data associated with the user_id
+        $business = Business::where('user_id', $user_id)->first();
+
+        if (!$business) {
+            return response()->json(['message' => 'Business data not found'], 404);
+        }
+
+        return response()->json($business);
+    }
+
     /**
      * Remove the specified resource from storage.
      */
@@ -77,3 +89,5 @@ class BusinessController extends Controller
         return response()->json(null, 204);
     }
 }
+
+

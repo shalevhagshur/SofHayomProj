@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput, Button } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../../store/store'; // Adjust the import path as needed
-import { logout } from '../../../store/slices/authSlice'; // Adjust the import path as needed
-import { fetchUserData ,updateUser ,changeUserPassword ,createBusiness } from '../../../store/slices/userSlice'; // Adjust the import path as needed
+import { RootState } from '../../../store/store'; 
+import { logout } from '../../../store/slices/authSlice';
+import { fetchUserData ,updateUser ,changeUserPassword ,createBusiness } from '../../../store/slices/userSlice';
+import { fetchBusinessByUserId, saveBusiness, clearBusinessData } from '../../../store/slices/businessSlice';
 import CardButton from '../../../components/CardButton';
 import AuthButton from '../../../components/AuthButton';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -29,6 +30,9 @@ const AccountScreen: React.FC = () => {
     const dispatch = useDispatch();
     const { token, isAuthenticated } = useSelector((state: RootState) => state.auth);
     const userData = useSelector((state: RootState) => state.user.userData);
+    const businessData = useSelector((state: RootState) => state.business.businessData);
+
+    
 
         // Default data setup
     const defaultUsername = 'DefaultUsername';
@@ -38,10 +42,40 @@ const AccountScreen: React.FC = () => {
     useEffect(() => {
         if (isAuthenticated && token) {
             const userId = decodeToken(token).sub;
-            dispatch(fetchUserData(userId));
+            // dispatch(fetchUserData(userId));
+            // setBusinessAddress(businessData?.address)
+            // setBusinessName(businessData?.name)
+            
+            //add other business settings later
+            
         }
     }, [isAuthenticated, token, dispatch]);
 
+    useEffect(() => {
+        if (userData && token) {
+            setUsername(userData.username || defaultUsername);
+            setProfileImage(userData.profileImage || defaultProfileImage);
+        }
+        
+    }, [userData]);
+
+    useEffect(() => {
+        if (isAuthenticated && token) {
+            const userId = decodeToken(token).sub;
+            dispatch(fetchBusinessByUserId(userId));
+            dispatch(fetchUserData(userId));
+  
+        }
+    }, [isAuthenticated, token, dispatch]);
+
+    useEffect(() => {
+        if (businessData) {
+            setBusinessName(businessData.name);
+            setBusinessAddress(businessData.address);
+        }
+    }, [businessData]);
+    
+    
     const [isModalVisible, setModalVisible] = useState(false);
     const [modalContent, setModalContent] = useState('');
     const [username, setUsername] = useState(defaultUsername);
@@ -52,20 +86,6 @@ const AccountScreen: React.FC = () => {
     const [businessName, setBusinessName] = useState('');
     const [businessAddress, setBusinessAddress] = useState('');
     const [businessImage, setBusinessImage] = useState(null);
-
-    useEffect(() => {
-        if (userData) {
-            setUsername(userData.username || defaultUsername);
-            setProfileImage(userData.profileImage || defaultProfileImage);
-        }
-    }, [userData]);
-
-    useEffect(() => {
-        if (isAuthenticated && token) {
-            const userId = decodeToken(token).sub;
-            dispatch(fetchUserData(userId));
-        }
-    }, [isAuthenticated, token, dispatch]);
 
     const handleButtonPress = (content: string) => {
         setModalContent(content);
@@ -83,12 +103,19 @@ const AccountScreen: React.FC = () => {
                 }
           
                 // Check if business details have been edited
-                if (businessName !== '' || businessAddress !== '') {
-                  // Call action to create or update business details
-                  console.log('Updating or creating business:', { name: businessName, address: businessAddress, user_id: userData.id });
-                  dispatch(createBusiness({ name: businessName, address: businessAddress, user_id: userData.id }));
+                if (businessName || businessAddress) {
+                    const businessUpdate = {
+                        name: businessName || businessData?.name,
+                        address: businessAddress || businessData?.address,
+                        user_id: userData.id,
+                    };
+                    
+                    if (businessData) {
+                        dispatch(saveBusiness({ ...businessUpdate, id: businessData.id }));
+                    } else {
+                        dispatch(createBusiness(businessUpdate));
+                    }
                 }
-
                 break;      
             case 'Program Help':
                 console.log('Requesting program help');

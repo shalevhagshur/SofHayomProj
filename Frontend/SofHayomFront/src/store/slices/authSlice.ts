@@ -3,6 +3,7 @@ import api from '../../utils/api';
 import { Base64 } from 'js-base64';
 import { storeTokenInAsyncStorage } from './Helpers';
 import { fetchUserData } from './userSlice';
+import { clearBusinessData } from './businessSlice';
 
     const decodeToken = (token: string) => {
         try {
@@ -144,6 +145,7 @@ import { fetchUserData } from './userSlice';
           state.error = null;
           state.isBusinessAuthorized = null;
           const userData = []
+          clearBusinessData();
       },
         // Add other reducers as needed
     },
