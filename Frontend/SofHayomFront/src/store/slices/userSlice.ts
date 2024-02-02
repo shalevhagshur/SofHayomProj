@@ -88,7 +88,11 @@ export const changeUserPassword = createAsyncThunk(
         newPassword,
         confirmPassword
       };
-      const response = await api.put(`/users/${userId}/changePassword`, passwordData);
+      console.log(passwordData);
+      
+      const response = await api.put(`/users/${userId}/changepassword`, passwordData);
+      console.log(response);
+      
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Error changing password');

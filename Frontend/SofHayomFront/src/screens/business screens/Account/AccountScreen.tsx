@@ -42,12 +42,6 @@ const AccountScreen: React.FC = () => {
     useEffect(() => {
         if (isAuthenticated && token) {
             const userId = decodeToken(token).sub;
-            // dispatch(fetchUserData(userId));
-            // setBusinessAddress(businessData?.address)
-            // setBusinessName(businessData?.name)
-            
-            //add other business settings later
-            
         }
     }, [isAuthenticated, token, dispatch]);
 
@@ -86,7 +80,10 @@ const AccountScreen: React.FC = () => {
     const [businessName, setBusinessName] = useState('');
     const [businessAddress, setBusinessAddress] = useState('');
     const [businessImage, setBusinessImage] = useState(null);
-
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    
     const handleButtonPress = (content: string) => {
         setModalContent(content);
         setModalVisible(true);
@@ -120,9 +117,31 @@ const AccountScreen: React.FC = () => {
             case 'Program Help':
                 console.log('Requesting program help');
                 break;
-            case 'Change Password':
-                console.log('Changing password to:', newPassword);
-                break;
+                case 'Change Password':
+                    console.log('Attempting to change password');
+                    if (newPassword !== confirmPassword) {
+                        console.log('New password and confirm password do not match.');
+                        // Add any additional handling, like showing an error message to the user
+                        break;
+                    }
+                    // Assuming you have the user's ID in userData.id
+                    dispatch(changeUserPassword({
+                        userId: userData.id,
+                        currentPassword: currentPassword,
+                        newPassword: newPassword,
+                        confirmPassword: confirmPassword
+                    })).then(() => {
+                        console.log('Changing password to:', newPassword);
+                        // Reset password fields after successful change
+                        setCurrentPassword('');
+                        setNewPassword('');
+                        setConfirmPassword('');
+                        // Handle successful password change, e.g., showing a confirmation message
+                    }).catch((error) => {
+                        console.error('Error changing password:', error);
+                        // Handle error, e.g., showing an error message
+                    });
+                    break;
             default:
                 console.log('No action for this content');
         }
@@ -183,27 +202,42 @@ const AccountScreen: React.FC = () => {
             case 'Change Password':
                 return (
                     <View>
-                        <TextInput
+                        <View style={styles.passwordContainer}>
+                            <TextInput
                             style={styles.input}
                             onChangeText={setCurrentPassword}
                             value={currentPassword}
                             placeholder="סיסמה נוכחית"
-                            secureTextEntry
-                        />
-                        <TextInput
+                            secureTextEntry={!showCurrentPassword}
+                            />
+                            <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
+                            <MaterialIcons name={showCurrentPassword ? 'visibility' : 'visibility-off'} size={20} />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.passwordContainer}>
+                            <TextInput
                             style={styles.input}
                             onChangeText={setNewPassword}
                             value={newPassword}
                             placeholder="סיסמה חדשה"
-                            secureTextEntry
-                        />
-                        <TextInput
+                            secureTextEntry={!showNewPassword}
+                            />
+                            <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+                            <MaterialIcons name={showNewPassword ? 'visibility' : 'visibility-off'} size={20} />
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.passwordContainer}>
+                            <TextInput
                             style={styles.input}
                             onChangeText={setConfirmPassword}
                             value={confirmPassword}
                             placeholder="אימות סיסמה חדשה"
-                            secureTextEntry
-                        />
+                            secureTextEntry={!showConfirmPassword}
+                            />
+                            <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                            <MaterialIcons name={showConfirmPassword ? 'visibility' : 'visibility-off'} size={20} />
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 );
             case 'Change Image':
@@ -395,6 +429,12 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         // Additional styling for the title
     },
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      },
+      
     // Additional styling as needed
 });
 
