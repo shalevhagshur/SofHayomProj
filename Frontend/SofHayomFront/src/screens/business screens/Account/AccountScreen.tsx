@@ -1,6 +1,6 @@
 // AccountScreen.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput, Button } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput, Button, Alert, Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../store/store'; 
 import { logout } from '../../../store/slices/authSlice';
@@ -9,6 +9,7 @@ import { fetchBusinessByUserId, saveBusiness, clearBusinessData } from '../../..
 import CardButton from '../../../components/CardButton';
 import AuthButton from '../../../components/AuthButton';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import * as ImagePicker from 'expo-image-picker';
 import { Base64 } from 'js-base64';
 
     const decodeToken = (token: string) => {
@@ -68,6 +69,54 @@ const AccountScreen: React.FC = () => {
             setBusinessAddress(businessData.address);
         }
     }, [businessData]);
+    
+    useEffect(() => {
+        (async () => {
+            if (Platform.OS !== 'web') {
+                // Request permission for media library (photo gallery)
+                const galleryStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                if (galleryStatus.status !== 'granted') {
+                    Alert.alert('Sorry, we need gallery permissions to make this work!');
+                }
+
+                // Request permission for camera
+                const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
+                if (cameraStatus.status !== 'granted') {
+                    Alert.alert('Sorry, we need camera permissions to make this work!');
+                }
+            }
+        })();
+    }, []);
+
+    const pickImageFromGallery = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+        });
+    
+        if (!result.canceled && result.assets) {
+            const firstAsset = result.assets[0];
+            setProfileImage(firstAsset.uri);
+            // Close the modal if needed or perform additional actions
+        }
+    };
+    
+    const takeImageWithCamera = async () => {
+        let result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+        });
+    
+        if (!result.canceled && result.assets) {
+            const firstAsset = result.assets[0];
+            setProfileImage(firstAsset.uri);
+            // Close the modal if needed or perform additional actions
+        }
+    };
+
     
     
     const [isModalVisible, setModalVisible] = useState(false);
@@ -244,16 +293,8 @@ const AccountScreen: React.FC = () => {
                 return (
                     <View style={styles.modalContentContainer}>
                         <Text style={styles.modalTitle}>שנה תמונה</Text>
-                        <Button
-                            title="בחר תמונה"
-                            onPress={handleChooseImagePress}
-                            color="#1a3644"
-                        />
-                        <Button
-                            title="שנה תמונה"
-                            onPress={handleChangeImagePress}
-                            color="#1a3644"
-                        />
+                        <Button title="בחר תמונה" onPress={pickImageFromGallery} color="#1a3644" />
+                        <Button title="צלם תמונה" onPress={takeImageWithCamera} color="#1a3644" />
                     </View>
                 );
             default:

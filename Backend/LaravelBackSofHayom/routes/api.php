@@ -11,6 +11,7 @@ use App\Http\Controllers\OrderDetailController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ImageUploadController;
 
 
 
@@ -85,6 +86,10 @@ Route::get('/businesses/{id}', [BusinessController::class, 'show']);
 Route::put('/businesses/{id}', [BusinessController::class, 'update']);
 Route::delete('/businesses/{id}', [BusinessController::class, 'destroy']);
 Route::get('/businesses/user/{user_id}', [BusinessController::class,'getByUserId']);
+
+// Images CRUD
+Route::post('/upload', [ImageUploadController::class,'store']);
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
