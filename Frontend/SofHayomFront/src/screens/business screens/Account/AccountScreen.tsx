@@ -10,7 +10,9 @@ import CardButton from '../../../components/CardButton';
 import AuthButton from '../../../components/AuthButton';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
+import uuid from 'react-native-uuid';
 import { Base64 } from 'js-base64';
+import { API_BASE_URL } from '../../../utils/api';
 
     const decodeToken = (token: string) => {
         try {
@@ -26,6 +28,15 @@ import { Base64 } from 'js-base64';
           return null;
         }
       };
+
+      const formatImageUrl = (imageUrl: any) => {
+        if (!imageUrl) return null; // Return null or a default image if imageUrl is falsy
+        
+        // Assuming API_BASE_URL might end with '/api' and we want to remove it
+        let baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL.slice(0, -4) : API_BASE_URL;
+        
+        return imageUrl.replace('http://localhost', baseUrl);
+    };
 
 const AccountScreen: React.FC = () => {
     const dispatch = useDispatch();
@@ -49,7 +60,7 @@ const AccountScreen: React.FC = () => {
     useEffect(() => {
         if (userData && token) {
             setUsername(userData.username || defaultUsername);
-            setProfileImage(userData.profileImage || defaultProfileImage);
+            
         }
         
     }, [userData]);
@@ -59,7 +70,7 @@ const AccountScreen: React.FC = () => {
             const userId = decodeToken(token).sub;
             dispatch(fetchBusinessByUserId(userId));
             dispatch(fetchUserData(userId));
-  
+            
         }
     }, [isAuthenticated, token, dispatch]);
 
@@ -70,6 +81,17 @@ const AccountScreen: React.FC = () => {
         }
     }, [businessData]);
     
+    useEffect(() => {
+        if (businessData?.business_image) {
+            const formattedImageUrl = formatImageUrl(businessData.business_image);
+            setProfileImage({ uri: formattedImageUrl });
+            console.log(formattedImageUrl);
+            
+        } else {
+            setProfileImage(defaultProfileImage);
+        }
+    }, [businessData]);
+
     useEffect(() => {
         (async () => {
             if (Platform.OS !== 'web') {
@@ -99,6 +121,15 @@ const AccountScreen: React.FC = () => {
         if (!result.canceled && result.assets) {
             const firstAsset = result.assets[0];
             setProfileImage(firstAsset.uri);
+    
+            // Upload the image
+            uploadImage(firstAsset.uri).then(() => {
+                // You might want to update your state or Redux store here
+            }).catch(error => {
+                console.error("Image upload failed:", error);
+                // Handle upload failure, such as updating state or showing an alert
+            });
+    
             // Close the modal if needed or perform additional actions
         }
     };
@@ -113,11 +144,63 @@ const AccountScreen: React.FC = () => {
         if (!result.canceled && result.assets) {
             const firstAsset = result.assets[0];
             setProfileImage(firstAsset.uri);
+    
+            // Upload the image
+            uploadImage(firstAsset.uri).then(() => {
+                // You might want to update your state or Redux store here
+            }).catch(error => {
+                console.error("Image upload failed:", error);
+                // Handle upload failure, such as updating state or showing an alert
+            });
+    
             // Close the modal if needed or perform additional actions
         }
     };
 
-    
+    const createFormData = (photoUri) => {
+        const formData = new FormData();
+      
+        // Add the file to the formData object
+        formData.append('image', {
+          uri: photoUri,
+          type: 'image/jpeg', // or the correct mime type of your image
+          name: `upload_${Date.now()}.jpg`, // Dynamically generate a name
+        });
+      
+        return formData;
+      };
+      
+      const uploadImage = async (photoUri) => {
+        const formData = createFormData(photoUri);
+      
+        try {
+          const response = await fetch(`${API_BASE_URL}/upload`, {
+            method: "POST",
+            body: formData,
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+      
+          const text = await response.text();
+          const result = JSON.parse(text);
+          console.log("Upload successful", result);
+      
+          if (result.url) {
+            // Assuming you have the business ID and other details available
+            const updatedBusinessData = {
+              ...businessData, // Spread the existing business data
+              business_image: result.url, // Update the business image URL
+            };
+      
+            // Dispatch the saveBusiness action with the updated business data
+            dispatch(saveBusiness(updatedBusinessData));
+          }
+        } catch (error) {
+          console.error("Upload failed", error);
+        }
+      };
+
     
     const [isModalVisible, setModalVisible] = useState(false);
     const [modalContent, setModalContent] = useState('');
@@ -128,7 +211,6 @@ const AccountScreen: React.FC = () => {
     const [profileImage, setProfileImage] = useState(defaultProfileImage);  
     const [businessName, setBusinessName] = useState('');
     const [businessAddress, setBusinessAddress] = useState('');
-    const [businessImage, setBusinessImage] = useState(null);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
