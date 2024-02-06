@@ -1,7 +1,7 @@
 // AccountScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, TextInput, Button, Alert, Platform } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../../store/store'; 
 import { logout } from '../../../store/slices/authSlice';
 import { fetchUserData ,updateUser ,changeUserPassword ,createBusiness } from '../../../store/slices/userSlice';
@@ -10,7 +10,6 @@ import CardButton from '../../../components/CardButton';
 import AuthButton from '../../../components/AuthButton';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
-import uuid from 'react-native-uuid';
 import { Base64 } from 'js-base64';
 import { API_BASE_URL } from '../../../utils/api';
 
@@ -85,7 +84,6 @@ const AccountScreen: React.FC = () => {
         if (businessData?.business_image) {
             const formattedImageUrl = formatImageUrl(businessData.business_image);
             setProfileImage({ uri: formattedImageUrl });
-            console.log(formattedImageUrl);
             
         } else {
             setProfileImage(defaultProfileImage);
@@ -170,36 +168,46 @@ const AccountScreen: React.FC = () => {
         return formData;
       };
       
-      const uploadImage = async (photoUri) => {
+      const uploadImage = async (photoUri: any) => {
         const formData = createFormData(photoUri);
-      
-        try {
-          const response = await fetch(`${API_BASE_URL}/upload`, {
-            method: "POST",
-            body: formData,
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-      
-          const text = await response.text();
-          const result = JSON.parse(text);
-          console.log("Upload successful", result);
-      
-          if (result.url) {
-            // Assuming you have the business ID and other details available
-            const updatedBusinessData = {
-              ...businessData, // Spread the existing business data
-              business_image: result.url, // Update the business image URL
-            };
-      
-            // Dispatch the saveBusiness action with the updated business data
-            dispatch(saveBusiness(updatedBusinessData));
-          }
-        } catch (error) {
-          console.error("Upload failed", error);
+    
+        if (businessData?.business_image) {
+            const oldImageURL = businessData.business_image;
+    
+            const prefixToRemove = `${API_BASE_URL}/storage`; 
+            const oldImagePath = oldImageURL.replace(prefixToRemove, '');
+    
+            formData.append('oldImagePath', oldImagePath);
+        } else {
+            console.log("No existing business image to delete.");
         }
-      };
+    
+        try {
+            const response = await fetch(`${API_BASE_URL}/upload`, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+    
+            const text = await response.text();
+            const result = JSON.parse(text);
+    
+            if (result.url) {
+                const updatedBusinessData = {
+                    ...businessData,
+                    business_image: result.url,
+                };
+    
+                dispatch(saveBusiness(updatedBusinessData));
+            }
+        } catch (error) {
+            console.error("Upload failed", error);
+        }
+    };
+    
+    
 
     
     const [isModalVisible, setModalVisible] = useState(false);
@@ -226,7 +234,6 @@ const AccountScreen: React.FC = () => {
                 // Check if username has been edited
                 if (username !== userData.username) {
                   // Call action to update username
-                  console.log('Updating username:', username);
                   dispatch(updateUser({ userId: userData.id, updates: { username } }));
                 }
           
@@ -249,9 +256,8 @@ const AccountScreen: React.FC = () => {
                 console.log('Requesting program help');
                 break;
                 case 'Change Password':
-                    console.log('Attempting to change password');
                     if (newPassword !== confirmPassword) {
-                        console.log('New password and confirm password do not match.');
+                        alert('הסיסמאות לא תואמות');
                         // Add any additional handling, like showing an error message to the user
                         break;
                     }
@@ -262,7 +268,6 @@ const AccountScreen: React.FC = () => {
                         newPassword: newPassword,
                         confirmPassword: confirmPassword
                     })).then(() => {
-                        console.log('Changing password to:', newPassword);
                         // Reset password fields after successful change
                         setCurrentPassword('');
                         setNewPassword('');
@@ -277,16 +282,6 @@ const AccountScreen: React.FC = () => {
                 console.log('No action for this content');
         }
         setModalVisible(false);
-    };
-
-    const handleChooseImagePress = () => {
-        console.log('Choose Image button pressed');
-        // Future logic for choosing a new image
-    };
-    
-    const handleChangeImagePress = () => {
-        console.log('Change Image button pressed');
-        // Future logic for updating the current image
     };
 
     const renderModalContent = () => {

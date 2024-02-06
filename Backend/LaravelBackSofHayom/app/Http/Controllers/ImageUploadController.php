@@ -13,10 +13,24 @@ class ImageUploadController extends Controller
             'image' => 'required|image|max:2048', // 2MB Max
         ]);
 
+        // Extract the old image path from the request
+        $oldImageURL = $request->input('oldImagePath');
+
+        if ($oldImageURL) {
+            // Assuming the URL format is something like http://localhost/storage/images/old.jpg
+            // and you need to convert it to a path like images/old.jpg
+            $urlPath = parse_url($oldImageURL, PHP_URL_PATH); // This gets '/storage/images/old.jpg'
+            
+            // Strip out '/storage/' to get the relative path
+            $storagePath = substr($urlPath, 9); // Adjust the number based on your actual path
+            
+            if (Storage::disk('public')->exists($storagePath)) {
+                Storage::disk('public')->delete($storagePath);
+            }
+        }
+
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('images', 'public');
-
-            // Optionally return the URL to the uploaded file
             return response()->json(['url' => Storage::disk('public')->url($path)], 200);
         }
 
